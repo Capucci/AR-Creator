@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR Creator</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .header {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      padding: 20px;
+      text-align: center;
+      color: white;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .hero {
+      text-align: center;
+      color: white;
+      margin-bottom: 50px;
+    }
+    .hero h1 {
+      font-size: 3em;
+      margin-bottom: 20px;
+    }
+    .hero p {
+      font-size: 1.2em;
+      opacity: 0.9;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      margin-top: 50px;
+    }
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      transition: transform 0.3s;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .card:hover {
+      transform: translateY(-10px);
+    }
+    .card-icon {
+      font-size: 4em;
+      margin-bottom: 20px;
+    }
+    .card h3 {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    .card p {
+      color: #666;
+      line-height: 1.6;
+    }
+    .projetos-section {
+      margin-top: 60px;
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+    }
+    .projetos-section h2 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .projeto-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+    }
+    .projeto-item:last-child {
+      border-bottom: none;
+    }
+    .projeto-info h4 {
+      color: #333;
+      margin-bottom: 5px;
+    }
+    .projeto-info small {
+      color: #666;
+    }
+    .projeto-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2>🎯 AR Multi Target Creator</h2>
+  </div>
+
+  <div class="container">
+    <div class="hero">
+      <h1>Crie Experiências de Realidade Aumentada</h1>
+      <p>Upload de targets, modelos 3D e compartilhamento com QR Code</p>
+    </div>
+
+    <div class="cards">
+      <a href="criar.html" class="card">
+        <div class="card-icon">➕</div>
+        <h3>Criar Novo Projeto</h3>
+        <p>Faça upload do seu target .mind, modelo 3D .glb e áudio para criar uma nova experiência AR</p>
+      </a>
+
+      <a href="ver.html?demo=true" class="card">
+        <div class="card-icon">🎮</div>
+        <h3>Ver Demonstração</h3>
+        <p>Teste uma experiência AR de exemplo com um modelo 3D pré-carregado</p>
+      </a>
+
+      <div class="card" onclick="mostrarTutorial()">
+        <div class="card-icon">📚</div>
+        <h3>Tutorial</h3>
+        <p>Aprenda como criar seus próprios targets .mind e modelos 3D para AR</p>
+      </div>
+    </div>
+
+    <div class="projetos-section" id="projetosSection">
+      <h2>📁 Seus Projetos</h2>
+      <div id="projetosList">
+        <p style="text-align: center; color: #666; padding: 20px;">Carregando projetos...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal do Tutorial -->
+  <div id="tutorialModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: white; max-width: 600px; padding: 30px; border-radius: 20px; margin: 20px;">
+      <h2 style="margin-bottom: 20px;">📚 Como Criar Targets .mind</h2>
+      <ol style="margin-left: 20px; line-height: 1.8;">
+        <li>Acesse <a href="https://hiukim.github.io/mind-ar-js-doc/tools/compile" target="_blank">Mind AR Compiler</a></li>
+        <li>Faça upload de uma imagem (de preferência com muitos detalhes)</li>
+        <li>Clique em "Compile" e aguarde</li>
+        <li>Download do arquivo .mind gerado</li>
+        <li>Use este arquivo no criador de projetos</li>
+      </ol>
+      <p style="margin-top: 20px; color: #666;">Para modelos 3D, use formatos .glb (recomendado) ou .gltf</p>
+      <button onclick="fecharTutorial()" style="margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">Entendi!</button>
+    </div>
+  </div>
+
+  <script>
+    // Funções do tutorial
+    function mostrarTutorial() {
+      document.getElementById('tutorialModal').style.display = 'flex';
+    }
+    
+    function fecharTutorial() {
+      document.getElementById('tutorialModal').style.display = 'none';
+    }
+
+    // Carregar projetos do localStorage
+    function carregarProjetos() {
+      const projetos = JSON.parse(localStorage.getItem('ar_projetos') || '[]');
+      const listEl = document.getElementById('projetosList');
+      
+      if (projetos.length === 0) {
+        listEl.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Nenhum projeto criado ainda. Crie seu primeiro projeto!</p>';
+        return;
+      }
+
+      listEl.innerHTML = projetos.map(projeto => `
+        <div class="projeto-item">
+          <div class="projeto-info">
+            <h4>${projeto.nome || 'Projeto sem nome'}</h4>
+            <small>Criado em: ${new Date(projeto.data).toLocaleDateString('pt-BR')}</small>
+          </div>
+          <div class="projeto-actions">
+            <button class="btn btn-primary" onclick="copiarLink('${projeto.id}')">📋 Link</button>
+            <button class="btn btn-success" onclick="gerarQR('${projeto.id}')">📱 QR</button>
+            <a href="ver.html?id=${projeto.id}" class="btn btn-secondary" target="_blank">👁️ Ver</a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Copiar link
+    window.copiarLink = function(projetoId) {
+      const url = `${window.location.origin}${window.location.pathname.replace('index.html', '')}ver.html?id=${projetoId}`;
+      navigator.clipboard.writeText(url).then(() => {
+        alert('Link copiado para a área de transferência!');
+      });
+    };
+
+    // Gerar QR Code
+    window.gerarQR = function(projetoId) {
+      const url = `${window.location.origin}${window.location.pathname.replace('index.html', '')}ver.html?id=${projetoId}`;
+      
+      // Criar modal do QR Code
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      `;
+      
+      // Usar API do Google Charts para gerar QR Code (gratuito)
+      const qrUrl = `https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=${encodeURIComponent(url)}&choe=UTF-8`;
+      
+      modal.innerHTML = `
+        <div style="background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 400px;">
+          <h3 style="margin-bottom: 20px;">QR Code do Projeto</h3>
+          <img src="${qrUrl}" style="max-width: 100%; border: 1px solid #ddd; padding: 10px; background: white;">
+          <p style="margin: 20px 0; word-break: break-all; color: #666;">${url}</p>
+          <button onclick="this.parentElement.parentElement.remove()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">Fechar</button>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+    };
+
+    // Carregar projetos ao iniciar
+    carregarProjetos();
+
+    // Fechar modal com ESC
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('tutorialModal');
+        if (modal.style.display === 'flex') {
+          modal.style.display = 'none';
+        }
+      }
+    });
+  </script>
+</body>
+</html>
