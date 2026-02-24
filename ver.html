@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR Viewer</title>
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  
+  <style>
+    body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
+    .audio-control-btn {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      z-index: 9999;
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(0, 0, 0, 0.7);
+      transition: all 0.3s;
+    }
+    .audio-control-btn.playing { background-color: rgba(0, 128, 0, 0.8); }
+    .audio-control-btn.paused { background-color: rgba(255, 0, 0, 0.8); }
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      color: white;
+      flex-direction: column;
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .error {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      z-index: 10001;
+    }
+    .a-enter-vr {
+      position: fixed;
+      bottom: 20px !important;
+      right: 20px !important;
+      left: auto !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div>Carregando experiência AR...</div>
+  </div>
+
+  <a-scene
+    id="scene"
+    mindar-image="imageTargetSrc: {{TARGET_PATH}};"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false"
+    embedded
+    arjs>
+    
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    
+    <a-entity mindar-image-target="targetIndex: 0">
+      <a-entity
+        id="modelo3d"
+        gltf-model="{{MODELO_PATH}}"
+        animation-mixer
+        position="0 0 0"
+        rotation="90 0 0"
+        scale="9 9 9">
+      </a-entity>
+    </a-entity>
+    
+    <audio id="audioAR" preload="auto" style="display: none;">
+      <source src="{{AUDIO_PATH}}" type="audio/mpeg">
+    </audio>
+  </a-scene>
+
+  <script>
+    // Função para obter parâmetros da URL
+    function getUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        id: params.get('id'),
+        demo: params.get('demo')
+      };
+    }
+
+    // Configuração do projeto
+    const params = getUrlParams();
+    let projectConfig = null;
+
+    // Carregar configuração
+    async function loadProject() {
+      if (params.demo) {
+        // Projeto de demonstração
+        projectConfig = {
+          targetPath: 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/examples/assets/targets/boo.mind',
+          modelPath: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf',
+          audioPath: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
+        };
+      } else if (params.id) {
+        // Projeto salvo
+        const projetos = JSON.parse(localStorage.getItem('ar_projetos') || '[]');
+        const projeto = projetos.find(p => p.id === params.id);
+        
+        if (projeto) {
+          // Em produção, aqui você buscaria os arquivos reais de um servidor
+          // Como estamos no GitHub Pages, vamos usar arquivos de exemplo
+          projectConfig = {
+            targetPath: 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/examples/assets/targets/boo.mind',
+            modelPath: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf',
+            audioPath: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
+          };
+        }
+      }
+
+      if (!projectConfig) {
+        showError('Projeto não encontrado!');
+        return;
+      }
+
+      // Atualizar a cena com os caminhos
+      updateScene();
+    }
+
+    // Atualizar a cena AR
+    function updateScene() {
+      const scene = document.getElementById('scene');
+      const mindarAttr = `mindar-image="imageTargetSrc: ${projectConfig.targetPath};"`;
+      scene.setAttribute('mindar-image', `imageTargetSrc: ${projectConfig.targetPath};`);
+      
+      // Atualizar modelo
+      const modelo = document.getElementById('modelo3d');
+      if (modelo) {
+        modelo.setAttribute('gltf-model', projectConfig.modelPath);
+      }
+      
+      // Atualizar áudio
+      const audio = document.getElementById('audioAR');
+      if (audio) {
+        const source = audio.querySelector('source');
+        if (source) {
+          source.src = projectConfig.audioPath;
+          audio.load();
+        }
+      }
+      
+      // Esconder loading após um tempo
+      setTimeout(() => {
+        document.getElementById('loading').style.display = 'none';
+      }, 2000);
+    }
+
+    function showError(message) {
+      document.getElementById('loading').style.display = 'none';
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error';
+      errorDiv.innerHTML = `
+        <h3 style="color: #dc3545;">❌ Erro</h3>
+        <p>${message}</p>
+        <button onclick="window.location.href='index.html'" style="margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">Voltar ao Início</button>
+      `;
+      document.body.appendChild(errorDiv);
+    }
+
+    // Inicializar
+    loadProject();
+
+    // Controles de áudio
+    document.addEventListener("DOMContentLoaded", function() {
+      const target = document.querySelector('[mindar-image-target]');
+      const audioElement = document.querySelector('#audioAR');
+      
+      let audioUnlocked = false;
+      let audioPausedTime = 0;
+      let isAudioPlaying = false;
+      let firstTargetFound = false;
+      
+      // Criar botão de controle
+      const audioBtn = document.createElement('button');
+      audioBtn.id = 'audioControlBtn';
+      audioBtn.className = 'audio-control-btn paused';
+      audioBtn.innerHTML = '🔇';
+      document.body.appendChild(audioBtn);
+
+      function updateButtonIcon() {
+        audioBtn.innerHTML = isAudioPlaying ? '🔊' : '🔇';
+        audioBtn.classList.toggle('playing', isAudioPlaying);
+        audioBtn.classList.toggle('paused', !isAudioPlaying);
+      }
+
+      function tryPlayAudio() {
+        if (!audioUnlocked) {
+          audioElement.play()
+            .then(() => {
+              audioUnlocked = true;
+              isAudioPlaying = true;
+              updateButtonIcon();
+            })
+            .catch(() => {});
+        } else if (!isAudioPlaying) {
+          if (audioPausedTime > 0) audioElement.currentTime = audioPausedTime;
+          audioElement.play()
+            .then(() => {
+              isAudioPlaying = true;
+              updateButtonIcon();
+            })
+            .catch(() => {});
+        }
+      }
+
+      if (target) {
+        target.addEventListener("targetFound", () => {
+          firstTargetFound = true;
+          tryPlayAudio();
+        });
+
+        target.addEventListener("targetLost", () => {
+          if (isAudioPlaying) {
+            audioPausedTime = audioElement.currentTime;
+            audioElement.pause();
+            isAudioPlaying = false;
+            updateButtonIcon();
+          }
+        });
+      }
+
+      if (audioBtn) {
+        audioBtn.addEventListener('click', () => {
+          if (isAudioPlaying) {
+            audioPausedTime = audioElement.currentTime;
+            audioElement.pause();
+            isAudioPlaying = false;
+          } else {
+            if (audioPausedTime > 0) audioElement.currentTime = audioPausedTime;
+            audioElement.play()
+              .then(() => {
+                isAudioPlaying = true;
+                audioUnlocked = true;
+              })
+              .catch(() => {});
+          }
+          updateButtonIcon();
+        });
+      }
+
+      document.body.addEventListener('click', () => {
+        if (firstTargetFound && !audioUnlocked) tryPlayAudio();
+      });
+      
+      document.body.addEventListener('touchstart', () => {
+        if (firstTargetFound && !audioUnlocked) tryPlayAudio();
+      });
+
+      if (audioElement) {
+        audioElement.addEventListener('ended', () => {
+          isAudioPlaying = false;
+          audioPausedTime = 0;
+          updateButtonIcon();
+        });
+        
+        audioElement.load();
+      }
+    });
+  </script>
+</body>
+</html>

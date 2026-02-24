@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Criar Projeto AR</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .upload-area {
+      border: 2px dashed #ddd;
+      border-radius: 10px;
+      padding: 30px 20px;
+      margin-bottom: 20px;
+      text-align: center;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .upload-area:hover {
+      border-color: #667eea;
+      background: #f8f9ff;
+    }
+    .upload-area.has-file {
+      border-color: #28a745;
+      background: #f0fff0;
+    }
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+    .upload-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .upload-subtitle {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    .file-info {
+      margin-top: 10px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: #333;
+      font-weight: bold;
+    }
+    .form-group input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      transition: transform 0.3s;
+    }
+    .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-secondary {
+      background: #6c757d;
+      margin-top: 10px;
+    }
+    .preview {
+      margin-top: 20px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      display: none;
+    }
+    .preview.show {
+      display: block;
+    }
+    .progress {
+      margin-top: 20px;
+      height: 4px;
+      background: #f0f0f0;
+      border-radius: 2px;
+      overflow: hidden;
+      display: none;
+    }
+    .progress.show {
+      display: block;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .status {
+      text-align: center;
+      margin-top: 10px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎯 Criar Novo Projeto AR</h1>
+
+    <div class="form-group">
+      <label for="projectName">Nome do Projeto</label>
+      <input type="text" id="projectName" placeholder="Ex: Meu Projeto AR" value="Projeto AR">
+    </div>
+
+    <!-- Upload Target .mind -->
+    <div class="upload-area" id="targetArea" onclick="document.getElementById('targetFile').click()">
+      <div class="upload-icon">🎯</div>
+      <div class="upload-title">Target .mind</div>
+      <div class="upload-subtitle">Clique para fazer upload do arquivo .mind</div>
+      <input type="file" id="targetFile" accept=".mind" style="display: none;">
+      <div class="file-info" id="targetInfo">Nenhum arquivo selecionado</div>
+    </div>
+
+    <!-- Upload Modelo 3D -->
+    <div class="upload-area" id="modeloArea" onclick="document.getElementById('modeloFile').click()">
+      <div class="upload-icon">📦</div>
+      <div class="upload-title">Modelo 3D (.glb)</div>
+      <div class="upload-subtitle">Clique para fazer upload do modelo 3D</div>
+      <input type="file" id="modeloFile" accept=".glb,.gltf" style="display: none;">
+      <div class="file-info" id="modeloInfo">Nenhum arquivo selecionado</div>
+    </div>
+
+    <!-- Upload Áudio -->
+    <div class="upload-area" id="audioArea" onclick="document.getElementById('audioFile').click()">
+      <div class="upload-icon">🎵</div>
+      <div class="upload-title">Áudio (.mp3)</div>
+      <div class="upload-subtitle">Clique para fazer upload do áudio</div>
+      <input type="file" id="audioFile" accept=".mp3,.wav,.ogg" style="display: none;">
+      <div class="file-info" id="audioInfo">Nenhum arquivo selecionado</div>
+    </div>
+
+    <!-- Botões -->
+    <button class="btn" id="createBtn" onclick="criarProjeto()">🚀 Criar Projeto AR</button>
+    <button class="btn btn-secondary" onclick="window.location.href='index.html'">← Voltar</button>
+
+    <!-- Progresso -->
+    <div class="progress" id="progress">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="status" id="status"></div>
+
+    <!-- Preview do Projeto Criado -->
+    <div class="preview" id="preview">
+      <h3 style="margin-bottom: 20px;">✅ Projeto Criado com Sucesso!</h3>
+      
+      <div style="text-align: center; margin-bottom: 20px;" id="qrPreview"></div>
+      
+      <div style="text-align: center; margin-bottom: 10px; word-break: break-all;" id="projectUrl"></div>
+      
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button class="btn" style="flex: 1;" onclick="copiarLink()">📋 Copiar Link</button>
+        <button class="btn" style="flex: 1; background: #28a745;" onclick="window.open(document.getElementById('projectUrl').textContent, '_blank')">👁️ Abrir AR</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let projectData = {
+      target: null,
+      modelo: null,
+      audio: null
+    };
+
+    // Preview dos arquivos
+    document.getElementById('targetFile').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        projectData.target = file;
+        document.getElementById('targetInfo').textContent = `✅ ${file.name} (${(file.size/1024).toFixed(2)} KB)`;
+        document.getElementById('targetArea').classList.add('has-file');
+      }
+    });
+
+    document.getElementById('modeloFile').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        projectData.modelo = file;
+        document.getElementById('modeloInfo').textContent = `✅ ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`;
+        document.getElementById('modeloArea').classList.add('has-file');
+      }
+    });
+
+    document.getElementById('audioFile').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        projectData.audio = file;
+        document.getElementById('audioInfo').textContent = `✅ ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`;
+        document.getElementById('audioArea').classList.add('has-file');
+      }
+    });
+
+    // Função para criar projeto
+    function criarProjeto() {
+      // Verificar se todos os arquivos foram selecionados
+      if (!projectData.target || !projectData.modelo || !projectData.audio) {
+        alert('Por favor, selecione todos os arquivos necessários!');
+        return;
+      }
+
+      const projectName = document.getElementById('projectName').value || 'Projeto AR';
+      
+      // Mostrar progresso
+      document.getElementById('progress').classList.add('show');
+      document.getElementById('status').textContent = 'Processando arquivos...';
+      document.getElementById('createBtn').disabled = true;
+
+      // Simular progresso
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 10;
+        document.getElementById('progressBar').style.width = progress + '%';
+        
+        if (progress >= 100) {
+          clearInterval(interval);
+          finalizarCriacao(projectName);
+        }
+      }, 200);
+    }
+
+    // Finalizar criação do projeto
+    function finalizarCriacao(projectName) {
+      // Gerar ID único para o projeto
+      const projectId = Date.now().toString(36) + Math.random().toString(36).substr(2);
+      
+      // Criar objeto do projeto
+      const projeto = {
+        id: projectId,
+        nome: projectName,
+        data: new Date().toISOString(),
+        target: {
+          nome: projectData.target.name,
+          tipo: projectData.target.type,
+          tamanho: projectData.target.size
+        },
+        modelo: {
+          nome: projectData.modelo.name,
+          tipo: projectData.modelo.type,
+          tamanho: projectData.modelo.size
+        },
+        audio: {
+          nome: projectData.audio.name,
+          tipo: projectData.audio.type,
+          tamanho: projectData.audio.size
+        }
+      };
+
+      // Salvar no localStorage
+      const projetos = JSON.parse(localStorage.getItem('ar_projetos') || '[]');
+      projetos.push(projeto);
+      localStorage.setItem('ar_projetos', JSON.stringify(projetos));
+
+      // Salvar arquivos no localStorage (apenas para demonstração - em produção usaríamos um backend)
+      // Como não podemos salvar arquivos binários no localStorage, vamos simular
+      salvarArquivosNoStorage(projectId);
+
+      // Gerar URL do projeto
+      const baseUrl = window.location.origin + window.location.pathname.replace('criar.html', '');
+      const projectUrl = `${baseUrl}ver.html?id=${projectId}`;
+      
+      // Mostrar preview
+      document.getElementById('status').textContent = 'Projeto criado com sucesso!';
+      document.getElementById('progress').classList.remove('show');
+      
+      // Mostrar QR Code (usando Google Charts)
+      const qrUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(projectUrl)}&choe=UTF-8`;
+      document.getElementById('qrPreview').innerHTML = `<img src="${qrUrl}" style="max-width: 200px; border: 1px solid #ddd; padding: 10px;">`;
+      
+      document.getElementById('projectUrl').textContent = projectUrl;
+      document.getElementById('preview').classList.add('show');
+      
+      // Reset form
+      document.getElementById('createBtn').disabled = false;
+      
+      // Limpar seleções
+      limparSelecoes();
+    }
+
+    // Salvar referências dos arquivos no localStorage
+    function salvarArquivosNoStorage(projectId) {
+      // Como não podemos salvar arquivos reais no localStorage,
+      // vamos salvar apenas os metadados
+      const filesRef = {
+        target: URL.createObjectURL(projectData.target),
+        modelo: URL.createObjectURL(projectData.modelo),
+        audio: URL.createObjectURL(projectData.audio)
+      };
+      
+      // Salvar as URLs temporárias
+      const tempFiles = JSON.parse(localStorage.getItem('ar_temp_files') || '{}');
+      tempFiles[projectId] = filesRef;
+      localStorage.setItem('ar_temp_files', JSON.stringify(tempFiles));
+    }
+
+    // Limpar seleções
+    function limparSelecoes() {
+      projectData = { target: null, modelo: null, audio: null };
+      
+      document.getElementById('targetFile').value = '';
+      document.getElementById('modeloFile').value = '';
+      document.getElementById('audioFile').value = '';
+      
+      document.getElementById('targetInfo').textContent = 'Nenhum arquivo selecionado';
+      document.getElementById('modeloInfo').textContent = 'Nenhum arquivo selecionado';
+      document.getElementById('audioInfo').textContent = 'Nenhum arquivo selecionado';
+      
+      document.getElementById('targetArea').classList.remove('has-file');
+      document.getElementById('modeloArea').classList.remove('has-file');
+      document.getElementById('audioArea').classList.remove('has-file');
+    }
+
+    // Copiar link
+    function copiarLink() {
+      const url = document.getElementById('projectUrl').textContent;
+      navigator.clipboard.writeText(url).then(() => {
+        alert('Link copiado para a área de transferência!');
+      });
+    }
+
+    // Drag and drop (opcional)
+    ['targetArea', 'modeloArea', 'audioArea'].forEach(areaId => {
+      const area = document.getElementById(areaId);
+      
+      area.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        area.style.borderColor = '#667eea';
+        area.style.background = '#f8f9ff';
+      });
+
+      area.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        area.style.borderColor = '#ddd';
+        area.style.background = 'white';
+      });
+
+      area.addEventListener('drop', (e) => {
+        e.preventDefault();
+        area.style.borderColor = '#ddd';
+        area.style.background = 'white';
+        
+        const file = e.dataTransfer.files[0];
+        if (file) {
+          const input = document.getElementById(areaId === 'targetArea' ? 'targetFile' : 
+                                               areaId === 'modeloArea' ? 'modeloFile' : 'audioFile');
+          
+          // Simular seleção de arquivo
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          input.files = dataTransfer.files;
+          
+          // Disparar evento change
+          const event = new Event('change', { bubbles: true });
+          input.dispatchEvent(event);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
